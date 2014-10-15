@@ -7,16 +7,21 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @author Dmitry Baev charlie@yandex-team.ru
- *         Date: 01.08.14
+ *         <p>Use this annotation to link a single issue from issue tracker to test cases and test suites. Usage:
+ *         {@code
+ *         @Issue("MYPROJECT-1")
+ *         public void myTest(){
+ *             ...
+ *         }
+ *         }
  *
- *         Part of the future functionality
+ *         </p>
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.TYPE})
 public @interface Issue {
-
+    
     String value();
-
+    
 }

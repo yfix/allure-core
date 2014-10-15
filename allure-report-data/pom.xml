@@ -4,7 +4,7 @@
     <parent>
         <artifactId>allure-core</artifactId>
         <groupId>ru.yandex.qatools.allure</groupId>
-        <version>1.4.0-SNAPSHOT</version>
+        <version>1.4.4-SNAPSHOT</version>
     </parent>
 
     <artifactId>allure-report-data</artifactId>
@@ -106,8 +106,8 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
         </dependency>
 
         <!--Jackson dependencies for serialize to JSON-->

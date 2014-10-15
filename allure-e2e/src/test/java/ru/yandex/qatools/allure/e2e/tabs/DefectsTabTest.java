@@ -25,15 +25,18 @@ public class DefectsTabTest {
     @Before
     public void openBrowser() throws Exception {
         page = new Page(jsErrorsRule.driver());
-        assertThat(page.tabContent(), should(existsAndVisible()).whileWaitingUntil(timeoutHasExpired(SECONDS.toMillis(3))));
+        assertThat(page.tabContent(), should(existsAndVisible())
+                .whileWaitingUntil(timeoutHasExpired(SECONDS.toMillis(3))));
         page.tabs().defects().click();
-        assertThat(page.defectsTabContent().defectAt(0), should(existsAndVisible()).whileWaitingUntil(timeoutHasExpired(SECONDS.toMillis(3))));
+        assertThat(page.defectsTabContent().defectAt(0), should(existsAndVisible())
+                .whileWaitingUntil(timeoutHasExpired(SECONDS.toMillis(3))));
     }
 
 
     @Test
     public void shouldNotSeeAnOpenTestcase() throws Exception {
-        assertThat(page.defectsTabContent().currentDefect(), not(should(existsAndVisible()).whileWaitingUntil(timeoutHasExpired(SECONDS.toMillis(3)))));
+        assertThat(page.defectsTabContent().currentDefect(), should(not(existsAndVisible()))
+                .whileWaitingUntil(timeoutHasExpired(SECONDS.toMillis(3))));
     }
 
     @Test

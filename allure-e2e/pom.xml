@@ -3,7 +3,7 @@
     <parent>
         <artifactId>allure-core</artifactId>
         <groupId>ru.yandex.qatools.allure</groupId>
-        <version>1.4.0-SNAPSHOT</version>
+        <version>1.4.4-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>allure-e2e</artifactId>
@@ -14,7 +14,7 @@
     <properties>
         <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
         <allure.report.directory>${project.build.directory}/allure-report</allure.report.directory>
-
+        <allure.issues.tracker.pattern>http://github.com/allure-framework/allure-core/issues/%s</allure.issues.tracker.pattern>
         <jetty.host>0.0.0.0</jetty.host>
         <jetty.port>9010</jetty.port>
     </properties>
@@ -133,6 +133,7 @@
                     <arguments>
                         <argument>-classpath</argument>
                         <classpath />
+                        <argument>-Dallure.issues.tracker.pattern=${allure.issues.tracker.pattern}</argument>
                         <mainClass>ru.yandex.qatools.allure.data.DummyReportGenerator</mainClass>
                         <argument>${allure.results.directory}</argument>
                         <argument>${allure.report.directory}</argument>
@@ -206,6 +207,13 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
         </plugins>
     </build>

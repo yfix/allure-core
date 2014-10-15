@@ -1,0 +1,11 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+  
+<suite name="Test Suite1" verbose="1" >
+  <test name="SmokeTest1">
+  <parameter name="param2 " value="value2"></parameter>
+    <classes>
+       <class name="ru.yandex.qatools.allure.testng.testdata.TestDataClass" />
+    </classes>
+  </test>
+ 
+</suite>

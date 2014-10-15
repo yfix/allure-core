@@ -5,7 +5,7 @@
     <parent>
         <groupId>ru.yandex.qatools.allure</groupId>
         <artifactId>allure-core</artifactId>
-        <version>1.4.0-SNAPSHOT</version>
+        <version>1.4.4-SNAPSHOT</version>
     </parent>
 
     <artifactId>allure-model</artifactId>
@@ -91,8 +91,8 @@
             <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
         </dependency>
 
         <dependency>

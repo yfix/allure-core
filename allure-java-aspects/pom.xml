@@ -4,7 +4,7 @@
     <parent>
         <groupId>ru.yandex.qatools.allure</groupId>
         <artifactId>allure-core</artifactId>
-        <version>1.4.0-SNAPSHOT</version>
+        <version>1.4.4-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -12,14 +12,14 @@
     <name>Allure Java Aspects</name>
 
     <properties>
-        <aspectj.version>1.7.4</aspectj.version>
+        <aspectj.version>1.8.2</aspectj.version>
         <sonar.exclusions>**/aspects/**</sonar.exclusions>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>ru.yandex.qatools.allure</groupId>
-            <artifactId>allure-java-commons</artifactId>
+            <artifactId>allure-java-adaptor-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.aspectj</groupId>

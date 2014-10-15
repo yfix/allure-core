@@ -3,21 +3,27 @@ package ru.yandex.qatools.allure.testng;
 import org.testng.IConfigurationListener;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
+import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
 import org.testng.SkipException;
 import org.testng.TestException;
+
 import ru.yandex.qatools.allure.Allure;
 import ru.yandex.qatools.allure.config.AllureModelUtils;
 import ru.yandex.qatools.allure.events.TestCaseCanceledEvent;
 import ru.yandex.qatools.allure.events.TestCaseFailureEvent;
 import ru.yandex.qatools.allure.events.TestCaseFinishedEvent;
+import ru.yandex.qatools.allure.events.TestCasePendingEvent;
 import ru.yandex.qatools.allure.events.TestCaseStartedEvent;
 import ru.yandex.qatools.allure.events.TestSuiteFinishedEvent;
 import ru.yandex.qatools.allure.events.TestSuiteStartedEvent;
+import ru.yandex.qatools.allure.model.Description;
 import ru.yandex.qatools.allure.utils.AnnotationManager;
 
 import java.lang.annotation.Annotation;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,7 +38,7 @@ public class AllureTestListener implements ITestListener, IConfigurationListener
 
     private Allure lifecycle = Allure.LIFECYCLE;
 
-    private String suiteUid = UUID.randomUUID().toString();
+    private Map<String,String> suiteUid = new HashMap<String, String>(); 
 
     private Set<String> startedTestNames = Collections.newSetFromMap(
             new ConcurrentHashMap<String, Boolean>());
@@ -68,26 +74,52 @@ public class AllureTestListener implements ITestListener, IConfigurationListener
     @Override
     public void onStart(ITestContext iTestContext) {
         getLifecycle().fire(new TestSuiteStartedEvent(
-                suiteUid, iTestContext.getCurrentXmlTest().getSuite().getName()
+                getSuiteUid(iTestContext), iTestContext.getSuite().getName()
+        ).withTitle(
+                getCurrentSuiteTitle(iTestContext)
         ).withLabels(
-                AllureModelUtils.createTestFrameworkLabel("TestNG"),
-                AllureModelUtils.createFeatureLabel(iTestContext.getName())
+                AllureModelUtils.createTestFrameworkLabel("TestNG")
         ));
+        addPendingMethods(iTestContext);
+    }
+    
+    
+    private void addPendingMethods(ITestContext iTestContext) {
+        for (ITestNGMethod method: iTestContext.getExcludedMethods()) {
+            if (method.isTest() && !method.getEnabled()) {
+                Description description = new Description().withValue(method.getDescription());
+                TestCaseStartedEvent event = new TestCaseStartedEvent(getSuiteUid(iTestContext), method.getMethodName());
+                if (description.getValue() != null) {
+                    event.setDescription(description);
+                }
+                AnnotationManager am = new AnnotationManager(method.getConstructorOrMethod().getMethod().getAnnotations());
+                am.setDefaults(method.getInstance().getClass().getAnnotations());
+                am.update(event);
+                getLifecycle().fire(event);
+                getLifecycle().fire(new TestCasePendingEvent());
+                fireFinishTest();
+            }
+        }
     }
 
     @Override
     public void onFinish(ITestContext iTestContext) {
-        getLifecycle().fire(new TestSuiteFinishedEvent(suiteUid));
+        getLifecycle().fire(new TestSuiteFinishedEvent(getSuiteUid(iTestContext)));
     }
 
     @Override
     public void onTestStart(ITestResult iTestResult) {
+        String suitePrefix = getCurrentSuitePrefix(iTestResult);
         String testName = getName(iTestResult);
         startedTestNames.add(testName);
-
-        TestCaseStartedEvent event = new TestCaseStartedEvent(suiteUid, testName);
+        testName = testName.replace(suitePrefix, "");
+        Description description = new Description().withValue(iTestResult.getMethod().getDescription());
+        TestCaseStartedEvent event = new TestCaseStartedEvent(getSuiteUid(iTestResult.getTestContext()), testName);
+        if (description.getValue() != null) {
+            event.setDescription(description);
+        }
         AnnotationManager am = new AnnotationManager(getMethodAnnotations(iTestResult));
-
+        am.setDefaults(getClassAnnotations(iTestResult));
         am.update(event);
 
         getLifecycle().fire(event);
@@ -135,8 +167,16 @@ public class AllureTestListener implements ITestListener, IConfigurationListener
         return iTestResult.getMethod().getConstructorOrMethod().getMethod().getAnnotations();
     }
 
+    public Annotation[] getClassAnnotations(ITestResult iTestResult) {
+    	if (iTestResult.getInstance() == null) {
+    		return null;
+    	}
+        return iTestResult.getInstance().getClass().getAnnotations();
+    }
+    
     private String getName(ITestResult iTestResult) {
-        StringBuilder sb = new StringBuilder(iTestResult.getName());
+        String suitePrefix = getCurrentSuitePrefix(iTestResult);
+        StringBuilder sb = new StringBuilder(suitePrefix + iTestResult.getName());
         Object[] parameters = iTestResult.getParameters();
         if (parameters != null && parameters.length > 0) {
             sb.append("[");
@@ -147,7 +187,24 @@ public class AllureTestListener implements ITestListener, IConfigurationListener
         }
         return sb.toString();
     }
+    
+    private String getCurrentSuiteTitle(ITestContext iTestContext) {
+        String suite = iTestContext.getSuite().getName();
+        String xmlTest = iTestContext.getCurrentXmlTest().getName();
+        String params = "";
+        
+        if (iTestContext.getCurrentXmlTest().getLocalParameters().size() > 0) {
+            params = iTestContext.getCurrentXmlTest().getLocalParameters()
+                    .toString().replace("{", "[").replace("}", "]");
+        }
 
+        return suite + " : " + xmlTest + params;
+    }
+    
+    private String getCurrentSuitePrefix(ITestResult iTestResult) {
+        return "{" + getCurrentSuiteTitle(iTestResult.getTestContext()) + "}";
+    }
+    
     private void fireFinishTest() {
         getLifecycle().fire(new TestCaseFinishedEvent());
     }
@@ -160,7 +217,20 @@ public class AllureTestListener implements ITestListener, IConfigurationListener
         this.lifecycle = lifecycle;
     }
 
-    String getSuiteUid() {
-        return suiteUid;
+    /**
+     * Package private. Used in unit test.
+     *
+     * @return UID for the current suite
+     */
+    String getSuiteUid(ITestContext iTestContext) {
+        String uid;
+        String suite = getCurrentSuiteTitle(iTestContext);
+        if (suiteUid.containsKey(suite)) {
+            uid = suiteUid.get(suite);
+        } else {
+            uid = UUID.randomUUID().toString();
+            suiteUid.put(suite, uid);
+        }
+        return uid;
     }
 }

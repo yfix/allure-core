@@ -1,11 +1,15 @@
 /*global angular */
-angular.module('allure', ['ngAnimate', 'ui.bootstrap', 'localStorageModule', 'ui.router',
+angular.module('allure', ['angular-loading-bar', 'ngAnimate', 'ui.bootstrap', 'localStorageModule', 'ui.router',
         'allure.filters', 'allure.services', 'allure.directives', 'allure.controllers', 'allure.table', 'allure.pane',
         'allure.scrollfix', 'allure.charts', 'allure.testcase', 'allure.xUnit.controllers', 'allure.features',
         'allure.defects', 'allure.overview'])
     .config(function($tooltipProvider) {
         "use strict";
         $tooltipProvider.options({appendToBody:true});
+    })
+    .config(function(cfpLoadingBarProvider) {
+        "use strict";
+        cfpLoadingBarProvider.parentSelector = '.loader';
     })
     .config(function($httpProvider) {
         "use strict";
@@ -110,4 +114,5 @@ angular.module('allure', ['ngAnimate', 'ui.bootstrap', 'localStorageModule', 'ui
         testcaseProvider.attachStates('defects.defect');
         testcaseProvider.attachStates('features.story');
         testcaseProvider.attachStates('home.testsuite');
+        testcaseProvider.attachStates('timeline');
     });
